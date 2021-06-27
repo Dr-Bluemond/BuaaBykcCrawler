@@ -1,5 +1,5 @@
 # BuaaBykcCrawler
-北航博雅课程Python爬虫接口
+北航博雅课程Python + requests 爬虫接口，相较于selenium更加轻便快速。
 
 提供最基本的登陆，查询，选课，退选接口
 
