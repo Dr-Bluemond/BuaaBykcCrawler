@@ -136,7 +136,7 @@ del_chosen id       (or dc id) 退课
             i = int(args[0])
             j = self.r.chose(i)
             print("结果：", j)
-        except ValueError:
+        except (ValueError, IndexError):
             print("请输入数字的id")
 
     def del_chosen(self, args):
@@ -144,7 +144,7 @@ del_chosen id       (or dc id) 退课
             i = int(args[0])
             j = self.r.del_chosen(i)
             print("结果：", j)
-        except ValueError:
+        except (ValueError, IndexError):
             print("请输入数字的id")
 
 
