@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import requests
 import time
+from pprint import pprint
 from config import config
 import bykc_login
 
@@ -82,7 +83,6 @@ class Robot:
 class Terminal:
     help_info = """
 可用命令: 
-help                           查看指令列表
 query_selectable    (or qs)    查看可选课程
 query_chosen_course (or qc)    查看已选课程
 chose id            (or c id)  选课
@@ -112,7 +112,7 @@ del_chosen id       (or dc id) 退课
             command = input("> ")
             args = command.split()
             if args[0] in self.switch_table:
-                self.switch_table[args[0]].__call__(args[1:])
+                self.switch_table[args[0]](args[1:])
             elif args[0] in {'quit', 'exit', ''}:
                 return
             else:
@@ -120,7 +120,8 @@ del_chosen id       (or dc id) 退课
 
     def query_selectable(self, args):
         j = self.r.query_selectable()
-        print("缺少信息，暂时不能转换为可读格式，原数据：", j)
+        print("缺少信息，暂时不能转换为可读格式，原数据：")
+        pprint(j)
 
     def query_chosen_course(self, args):
         j = self.r.query_chosen_course()
@@ -135,7 +136,8 @@ del_chosen id       (or dc id) 退课
         try:
             i = int(args[0])
             j = self.r.chose(i)
-            print("结果：", j)
+            print("结果：")
+            pprint(j)
         except (ValueError, IndexError):
             print("请输入数字的id")
 
@@ -143,7 +145,8 @@ del_chosen id       (or dc id) 退课
         try:
             i = int(args[0])
             j = self.r.del_chosen(i)
-            print("结果：", j)
+            print("结果：")
+            pprint(j)
         except (ValueError, IndexError):
             print("请输入数字的id")
 
