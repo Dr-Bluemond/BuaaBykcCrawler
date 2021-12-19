@@ -2,6 +2,8 @@
 import requests
 import time
 from pprint import pprint
+
+from requests.api import head
 from config import config
 import bykc_login
 
@@ -79,14 +81,44 @@ class Robot:
         resp = requests.post(url, data='{"id":%d} ' % id, headers=headers)
         return resp.json()
 
+    def query_pre(self):
+        url = 'http://bykc.buaa.edu.cn/sscv/queryForeCourse'
+        headers = {
+            'Content-Type': 'application/json;charset=utf-8',
+            'User-Agent': ua,
+            'auth_token': config.token
+        }
+        
+        resp = requests.post(url, data='{}', headers=headers)
+        j = resp.json()
+        if j['errmsg'] == '您的会话已失效,请重新登录后再试,谢谢!':
+            print("博雅登录失效,尝试重新登录中. {time: %s}" % time.asctime())
+            try:
+                self.login()
+            except:
+                print("博雅未能重新登录. {time: %s}" % time.asctime())
+                return
+            print("博雅已重新登录. {time: %s}" % time.asctime())
+            self.query_selectable()
+            return
+        if 'data' not in j:
+            print("未知错误导致博雅课程查询失败，网页存入unknown_error.html. {time: %s}" % time.asctime())
+            with open('unknown_error.html', 'w') as f:
+                f.write(str(resp.json()))
+            return
+
+        return j
+
+
 
 class Terminal:
     help_info = """
 可用命令: 
-query_selectable    (or qs)    查看可选课程
-query_chosen_course (or qc)    查看已选课程
-chose id            (or c id)  选课
-del_chosen id       (or dc id) 退课
+query_selectable    (or qs or kx)       查看可选课程
+query_chosen_course (or qc or yx1)      查看已选课程
+chose id            (or c id or xk id)  选课
+del_chosen id       (or dc id or tk id) 退课
+color               (or yx2 or pre)     查看预选课程
 
 # 其中id的值可以通过前两个命令查询得到
     """
@@ -95,12 +127,19 @@ del_chosen id       (or dc id) 退课
         self.switch_table = {
             'query_selectable': self.query_selectable,
             'qs': self.query_selectable,
+            'kx': self.query_selectable,
             'query_chosen_courseq': self.query_chosen_course,
+            'yx1': self.query_chosen_course,
             'qc': self.query_chosen_course,
             'chose': self.chose,
+            'xk': self.chose,
             'c': self.chose,
             'del_chosen': self.del_chosen,
             'dc': self.del_chosen,
+            'color': self.query_pre,
+            'tk': self.del_chosen,
+            'yx2': self.query_pre,
+            'pre':self.query_pre,
         }
 
     def run(self):
@@ -149,6 +188,11 @@ del_chosen id       (or dc id) 退课
             pprint(j)
         except (ValueError, IndexError):
             print("请输入数字的id")
+
+    def query_pre(self, args):
+        j = self.r.query_pre()
+        print("缺少信息，暂时不能转换为可读格式，原数据：")
+        pprint(j)
 
 
 if __name__ == '__main__':
