@@ -1,14 +1,17 @@
 # -*- coding: utf-8 -*-
 import requests
 import re
-
 from config import config
 
 ua = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) ' \
      'Chrome/86.0.4240.75 Safari/537.36'
 
+proxies = {
+  'http': None,
+  'https': None
+}
 
-class Robot:
+class Robot:    
     def __init__(self):
         self.session = requests.session()
         self.session.headers['User-Agent'] = ua
@@ -24,7 +27,7 @@ class Robot:
         }
 
     def get_execution(self):
-        resp = self.session.get('https://sso.buaa.edu.cn/login?TARGET=http%3A%2F%2Fbykc.buaa.edu.cn%2Fsscv%2FcasLogin')
+        resp = self.session.get('https://sso.buaa.edu.cn/login?TARGET=http%3A%2F%2Fbykc.buaa.edu.cn%2Fsscv%2FcasLogin',proxies=proxies)
         pattern = '<input name="execution" value="(.*?)"/>'
         result = re.search(pattern, resp.content.decode())
         if not result:
@@ -33,16 +36,16 @@ class Robot:
 
     def login_sso(self):
         resp = self.session.post(
-            'https://sso.buaa.edu.cn/login?TARGET=http%3A%2F%2Fbykc.buaa.edu.cn%2Fsscv%2FcasLogin',
+            'https://sso.buaa.edu.cn/login?TARGET=http%3A%2F%2Fbykc.buaa.edu.cn%2Fsscv%2FcasLogin',proxies=proxies,
             data=self.get_login_form(), allow_redirects=False)
         if resp.status_code != 302:
             raise Exception
         location1 = resp.headers['Location']
-        resp1 = self.session.get(location1, allow_redirects=False)
+        resp1 = self.session.get(location1,proxies=proxies, allow_redirects=False)
         if resp1.status_code != 302:
             raise Exception
         location2 = resp1.headers['Location']
-        resp2 = self.session.get(location2, allow_redirects=False)
+        resp2 = self.session.get(location2,proxies=proxies, allow_redirects=False)
         location3 = resp2.headers['Location']
         result = re.search('token=(.*)', location3)
         if not result:
