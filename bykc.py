@@ -163,8 +163,23 @@ del_chosen id       (or dc id or tk id) 退课
 
     def query_selectable(self, args):
         j = self.r.query_selectable()
-        print("缺少信息，暂时不能转换为可读格式，原数据：")
-        pprint(j)
+        assert j['errmsg'] == '请求成功' and j['status'] == '0'        
+        data = j['data']
+        for course in data:
+            id = course['id']
+            coursebelongcollege = course['courseBelongCollege']
+            coursekind2 = course['courseKind2']
+            courseName = course['courseName']
+            courseteacher = course['courseTeacher']
+            coursestartdate = course['courseStartDate']
+            courseenddate = course['courseEndDate']
+            coursepositon = course['coursePosition']
+            coursecurrentcount = course['courseCurrentCount']
+            coursemaxcount = course['courseMaxCount']
+            coursecancelenddate = course['courseCancelEndDate']
+            courseselectenddate = course['courseSelectEndDate']
+            
+            print(f"id: {id}, 名称: {courseName}, 开课老师: {courseteacher}, 时间: {coursestartdate} - {courseenddate}, 地点: {coursepositon}, 人数: {coursecurrentcount}/{coursemaxcount},选课截止: {courseselectenddate} ,退课截止: {coursecancelenddate},类型: {coursekind2['kindName']},开课学院: {coursebelongcollege['collegeName']}, ")
 
     def query_chosen_course(self, args):
         j = self.r.query_chosen_course()
@@ -177,8 +192,22 @@ del_chosen id       (or dc id or tk id) 退课
 
     def query_fore_course(self, args):
         j = self.r.query_fore_course()
-        print("缺少信息，暂时不能转换为可读格式，原数据：")
-        pprint(j)
+        assert j['errmsg'] == '请求成功' and j['status'] == '0'        
+        data = j['data']
+        for course in data:
+            id = course['id']
+            coursebelongcollege = course['courseBelongCollege']
+            coursekind2 = course['courseKind2']
+            courseName = course['courseName']
+            courseteacher = course['courseTeacher']
+            coursestartdate = course['courseStartDate']
+            courseenddate = course['courseEndDate']
+            coursepositon = course['coursePosition']
+            coursecurrentcount = course['courseCurrentCount']
+            coursemaxcount = course['courseMaxCount']
+            courseenddate = course['courseEndDate']
+            courseselectstartdate = course['courseSelectStartDate']
+            print(f"id: {id}, 名称: {courseName}, 开课老师: {courseteacher}, 时间: {coursestartdate} - {courseenddate}, 地点: {coursepositon}, 人数: {coursecurrentcount}/{coursemaxcount}, 选课开始: {courseselectstartdate},类型: {coursekind2['kindName']},开课学院: {coursebelongcollege['collegeName']}, ")
 
     def chose(self, args):
         try:
