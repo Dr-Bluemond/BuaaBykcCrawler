@@ -1,9 +1,7 @@
 # -*- coding: utf-8 -*-
 # SSO统一认证登录接口
-import asyncio
 import logging
 
-import aiohttp
 import requests
 
 import patterns
