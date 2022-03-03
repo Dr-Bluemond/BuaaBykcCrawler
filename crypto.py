@@ -1,5 +1,6 @@
 import base64
 
+from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import serialization, padding, hashes
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 from cryptography.hazmat.primitives.asymmetric import padding as asymmetric_padding
@@ -9,7 +10,7 @@ import random
 RSA_PUBLIC_KEY = b"MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDlHMQ3B5GsWnCe7Nlo1YiG/YmHdlOiKOST5aRm4iaqYSvhvWmwcigoyWTM+8bv2+sf6nQBRDWTY4KmNV7DBk1eDnTIQo6ENA31k5/tYCLEXgjPbEjCK9spiyB62fCT6cqOhbamJB0lcDJRO6Vo1m3dy+fD0jbxfDVBBNtyltIsDQIDAQAB"
 
 # 需要首先用base64解码，然后再用der来load
-public_key = serialization.load_der_public_key(base64.b64decode(RSA_PUBLIC_KEY))
+public_key = serialization.load_der_public_key(base64.b64decode(RSA_PUBLIC_KEY), backend=default_backend())
 
 
 def generate_aes_key() -> bytes:
@@ -21,7 +22,7 @@ def aes_encrypt(message: bytes, key: bytes) -> bytes:
     padder = padding.PKCS7(128).padder()
     padded_message = padder.update(message) + padder.finalize()
 
-    cipher = Cipher(algorithms.AES(key), modes.ECB())
+    cipher = Cipher(algorithms.AES(key), modes.ECB(), backend=default_backend())
     encryptor = cipher.encryptor()
 
     encrypted_message = encryptor.update(padded_message) + encryptor.finalize()
@@ -29,7 +30,7 @@ def aes_encrypt(message: bytes, key: bytes) -> bytes:
 
 
 def aes_decrypt(message: bytes, key: bytes) -> bytes:
-    cipher = Cipher(algorithms.AES(key), modes.ECB())
+    cipher = Cipher(algorithms.AES(key), modes.ECB(), backend=default_backend())
     decryptor = cipher.decryptor()
 
     decrypted_message = decryptor.update(message) + decryptor.finalize()
@@ -40,7 +41,7 @@ def aes_decrypt(message: bytes, key: bytes) -> bytes:
 
 
 def sign(message: bytes) -> bytes:
-    digist = hashes.Hash(hashes.SHA1())
+    digist = hashes.Hash(hashes.SHA1(), backend=default_backend())
     digist.update(message)
     return base64.b16encode(digist.finalize()).lower()
 
