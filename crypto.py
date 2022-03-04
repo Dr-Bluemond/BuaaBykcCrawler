@@ -14,7 +14,9 @@ public_key = serialization.load_der_public_key(base64.b64decode(RSA_PUBLIC_KEY),
 
 
 def generate_aes_key() -> bytes:
-    return "".join(random.sample('abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789', 16)).encode()
+    return "".join(
+        [random.choice('abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789') for _ in range(16)]
+    ).encode()
 
 
 # aes加密用的ECB模式，iv等于key，padding用的pkcs
