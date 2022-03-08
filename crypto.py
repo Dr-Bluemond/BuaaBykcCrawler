@@ -19,7 +19,8 @@ def generate_aes_key() -> bytes:
     ).encode()
 
 
-# aes加密用的ECB模式，iv等于key，padding用的pkcs
+# aes加密用的ECB模式，padding用的pkcs
+# JavaScript源码中声明iv等于key，但是搞笑的是ECB模式并不需要iv，科技公司需要提高自己的密码学水平
 def aes_encrypt(message: bytes, key: bytes) -> bytes:
     padder = padding.PKCS7(128).padder()
     padded_message = padder.update(message) + padder.finalize()
