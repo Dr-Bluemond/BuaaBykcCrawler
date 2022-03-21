@@ -1,3 +1,4 @@
+import binascii
 import json
 import time
 from typing import Optional
@@ -6,32 +7,53 @@ import requests
 
 import patterns
 from config import root, ua
+from exceptions import ApiError, LoginError
 from sso import SsoApi
 from crypto import *
 from pprint import pprint
 
 
 class Client:
-    def __init__(self, username, password):
-        self.username = username
-        self.password = password
+    def __init__(self, config):
+        self.config = config
         self.session: Optional[requests.Session] = None
         self.token: Optional[str] = None
 
+    def soft_login(self):
+        if self.config.token:
+            self.token = self.config.token
+            if self.session is None:
+                self.session = requests.Session()
+            try:
+                result = self.get_user_profile()
+                if result['employeeId'] == self.config.username:
+                    print("soft login success")
+                    return True
+            except Exception:
+                pass
+        return self.login()
+
     def login(self):
-        self.session = requests.Session()
+        if self.session is None:
+            self.session = requests.Session()
         url = root + "/casLogin"
-        ticket_url = SsoApi(self.session, self.username, self.password).login_sso(url)
+        ticket_url = SsoApi(self.session, self.config.username, self.config.password).login_sso(url)
         resp = self.session.get(ticket_url, allow_redirects=False)
         url1 = resp.headers['Location']
         resp = self.session.get(url1, allow_redirects=False)
         url2 = resp.headers['Location']
         self.token = patterns.token.search(url2).group(1)
+        if self.token:
+            print('login success')
+        self.config.token = self.token
 
     def logout(self):
         self.session.close()
+        self.session = None
 
     def _call_api(self, api_name: str, data: dict):
+        if self.session is None:
+            raise LoginError("you must call `login` or `soft_login` before calling other apis")
         url = root + '/' + api_name
         data_str = json.dumps(data).encode()
         aes_key = generate_aes_key()
@@ -52,27 +74,55 @@ class Client:
 
         resp = self.session.post(url, data=data_encrypted, headers=headers)
         text = resp.content
-        api_resp = json.loads(aes_decrypt(base64.b64decode(text), aes_key))
-        return api_resp
+        if resp.status_code != 200:
+            raise ApiError(f"server panics with http status code: {resp.status_code}")
+        try:
+            message_decode_b64 = base64.b64decode(text)
+        except binascii.Error:
+            raise ApiError(f"unable to parse response: {text}")
+
+        try:
+            api_resp = json.loads(aes_decrypt(message_decode_b64, aes_key))
+        except ValueError:
+            raise LoginError("failed to decrypt response, it's usually because your login has expired")
+
+        if api_resp['status'] != '0':
+            raise ApiError(f"server returns a non zero api status code: {api_resp['status']}")
+        return api_resp['data']
+
+    def get_user_profile(self):
+        result = self._call_api('getUserProfile', {})
+        return result
 
     def query_selectable_course(self):
         result = self._call_api('querySelectableCourse', {})
         pprint(result)
+        return result
 
     def query_chosen_course(self):
         result = self._call_api('queryChosenCourse', {})
         pprint(result)
+        return result
 
     def query_fore_course(self):
         result = self._call_api('queryForeCourse', {})
         pprint(result)
+        return result
 
-    def chose_course(self, course_id: int):
-        result = self._call_api('choseCourse', {'courseId': course_id})
+    def chose_course(self, course_id: int) -> bool:
+        try:
+            result = self._call_api('choseCourse', {'courseId': course_id})
+        except ApiError as e:
+            print("failed to choose")
+            return False
         pprint(result)
+        return True
 
-    def del_chosen_course(self, course_id: int):
-        result = self._call_api('delChosenCourse', {'id': course_id})
+    def del_chosen_course(self, course_id: int) -> bool:
+        try:
+            result = self._call_api('delChosenCourse', {'id': course_id})
+        except ApiError as e:
+            print(e)
+            return False
         pprint(result)
-
-
+        return True
