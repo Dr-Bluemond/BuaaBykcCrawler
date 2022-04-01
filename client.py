@@ -62,7 +62,7 @@ class Client:
         sk = rsa_encrypt(data_sign)
         ts = str(int(time.time() * 1000))
 
-        data_encrypted = aes_encrypt(data_str, aes_key)
+        data_encrypted = base64.b64encode(aes_encrypt(data_str, aes_key))
         headers = {
             'Content-Type': 'application/json;charset=utf-8',
             'User-Agent': ua,
