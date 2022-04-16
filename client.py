@@ -7,7 +7,7 @@ import requests
 
 import patterns
 from config import root, ua
-from exceptions import ApiError, LoginError
+from exceptions import ApiError, LoginError, AlreadyChosen, FailedToChoose, FailedToDelChosen
 from sso import SsoApi
 from crypto import *
 from pprint import pprint
@@ -87,6 +87,13 @@ class Client:
             raise LoginError("failed to decrypt response, it's usually because your login has expired")
 
         if api_resp['status'] != '0':
+            if api_resp['errmsg'].find('已报名过该课程，请不要重复报名') >= 0:
+                raise AlreadyChosen
+            if api_resp['errmsg'].find('选课失败，该课程不可选择') >= 0:
+                raise FailedToChoose
+            if api_resp['errmsg'].find('退选失败，未找到退选课程或已超过退选时间') >= 0:
+                raise FailedToDelChosen
+            print(api_resp)
             raise ApiError(f"server returns a non zero api status code: {api_resp['status']}")
         return api_resp['data']
 
@@ -109,20 +116,10 @@ class Client:
         pprint(result)
         return result
 
-    def chose_course(self, course_id: int) -> bool:
-        try:
-            result = self._call_api('choseCourse', {'courseId': course_id})
-        except ApiError as e:
-            print("failed to choose")
-            return False
-        pprint(result)
-        return True
+    def chose_course(self, course_id: int):
+        result = self._call_api('choseCourse', {'courseId': course_id})
+        return result
 
-    def del_chosen_course(self, course_id: int) -> bool:
-        try:
-            result = self._call_api('delChosenCourse', {'id': course_id})
-        except ApiError as e:
-            print(e)
-            return False
-        pprint(result)
-        return True
+    def del_chosen_course(self, course_id: int):
+        result = self._call_api('delChosenCourse', {'id': course_id})
+        return result

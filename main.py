@@ -8,6 +8,8 @@ def test():
     client.query_fore_course()
     client.query_selectable_course()
     client.query_chosen_course()
+    client.del_chosen_course(3232)
+    client.chose_course(3232)
     client.logout()
 
 
