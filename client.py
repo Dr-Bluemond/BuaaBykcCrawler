@@ -38,14 +38,20 @@ class Client:
             self.session = requests.Session()
         url = root + "/casLogin"
         ticket_url = SsoApi(self.session, self.config.username, self.config.password).login_sso(url)
-        resp = self.session.get(ticket_url, allow_redirects=False)
-        url1 = resp.headers['Location']
-        resp = self.session.get(url1, allow_redirects=False)
-        url2 = resp.headers['Location']
-        self.token = patterns.token.search(url2).group(1)
-        if self.token:
-            print('login success')
-        self.config.token = self.token
+        url = ticket_url
+        while True:
+            resp = self.session.get(url, allow_redirects=False)  # manually redirect
+            searching_token = patterns.token.search(url)
+            if searching_token:
+                self.token = searching_token.group(1)
+                print('login success')
+                self.config.token = self.token
+                break
+            elif resp.status_code in [301, 302]:
+                url = resp.headers['Location']
+                continue
+            else:
+                raise LoginError
 
     def logout(self):
         self.session.close()
@@ -67,6 +73,7 @@ class Client:
             'Content-Type': 'application/json;charset=utf-8',
             'User-Agent': ua,
             'auth_token': self.token,
+            'authtoken': self.token,
             'ak': ak.decode(),
             'sk': sk.decode(),
             'ts': ts,
@@ -90,6 +97,8 @@ class Client:
             if api_resp['errmsg'].find('已报名过该课程，请不要重复报名') >= 0:
                 raise AlreadyChosen
             if api_resp['errmsg'].find('选课失败，该课程不可选择') >= 0:
+                raise FailedToChoose
+            if api_resp['errmsg'].find('报名失败，该课程人数已满！') >= 0:
                 raise FailedToChoose
             if api_resp['errmsg'].find('退选失败，未找到退选课程或已超过退选时间') >= 0:
                 raise FailedToDelChosen

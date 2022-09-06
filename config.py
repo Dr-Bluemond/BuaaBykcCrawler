@@ -66,6 +66,6 @@ class Config:
 
 config = Config()
 
-root = "http://bykc.buaa.edu.cn/sscv"
+root = "https://bykc.buaa.edu.cn/sscv"
 
 ua = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/98.0.4758.109 Safari/537.36"
