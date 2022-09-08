@@ -15,7 +15,7 @@ public_key = serialization.load_der_public_key(base64.b64decode(RSA_PUBLIC_KEY),
 
 def generate_aes_key() -> bytes:
     return "".join(
-        [random.choice('abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789') for _ in range(16)]
+        [random.choice('ABCDEFGHJKMNPQRSTWXYZabcdefhijkmnprstwxyz2345678') for _ in range(16)]
     ).encode()
 
 
