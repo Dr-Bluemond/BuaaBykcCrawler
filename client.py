@@ -10,7 +10,6 @@ from config import root, ua
 from exceptions import ApiError, LoginError, AlreadyChosen, FailedToChoose, FailedToDelChosen
 from sso import SsoApi
 from crypto import *
-from pprint import pprint
 
 
 class Client:
@@ -95,13 +94,13 @@ class Client:
 
         if api_resp['status'] != '0':
             if api_resp['errmsg'].find('已报名过该课程，请不要重复报名') >= 0:
-                raise AlreadyChosen
+                raise AlreadyChosen("已报名过该课程，请不要重复报名")
             if api_resp['errmsg'].find('选课失败，该课程不可选择') >= 0:
-                raise FailedToChoose
+                raise FailedToChoose('选课失败，该课程不可选择')
             if api_resp['errmsg'].find('报名失败，该课程人数已满！') >= 0:
-                raise FailedToChoose
+                raise FailedToChoose("报名失败，该课程人数已满！")
             if api_resp['errmsg'].find('退选失败，未找到退选课程或已超过退选时间') >= 0:
-                raise FailedToDelChosen
+                raise FailedToDelChosen("退选失败，未找到退选课程或已超过退选时间")
             print(api_resp)
             raise ApiError(f"server returns a non zero api status code: {api_resp['status']}")
         return api_resp['data']
@@ -110,19 +109,20 @@ class Client:
         result = self._call_api('getUserProfile', {})
         return result
 
+    def query_student_semester_course_by_page(self, page_number: int, page_size: int):
+        result = self._call_api('queryStudentSemesterCourseByPage', {'pageNumber': page_number, 'pageSize': page_size})
+        return result
+
     def query_selectable_course(self):
         result = self._call_api('querySelectableCourse', {})
-        pprint(result)
         return result
 
     def query_chosen_course(self):
         result = self._call_api('queryChosenCourse', {})
-        pprint(result)
         return result
 
     def query_fore_course(self):
         result = self._call_api('queryForeCourse', {})
-        pprint(result)
         return result
 
     def chose_course(self, course_id: int):
