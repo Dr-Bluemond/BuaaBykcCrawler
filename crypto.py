@@ -6,10 +6,10 @@ from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 from cryptography.hazmat.primitives.asymmetric import padding as asymmetric_padding
 import random
 
-# 这是一个1024bit的RSA公钥
+# 这是一个1024bit的RSA公钥，从'app.js'中可以找到
 RSA_PUBLIC_KEY = b"MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDlHMQ3B5GsWnCe7Nlo1YiG/YmHdlOiKOST5aRm4iaqYSvhvWmwcigoyWTM+8bv2+sf6nQBRDWTY4KmNV7DBk1eDnTIQo6ENA31k5/tYCLEXgjPbEjCK9spiyB62fCT6cqOhbamJB0lcDJRO6Vo1m3dy+fD0jbxfDVBBNtyltIsDQIDAQAB"
 
-# 需要首先用base64解码，然后再用der来load
+# 需要首先用base64解码，然后再用der格式来load
 public_key = serialization.load_der_public_key(base64.b64decode(RSA_PUBLIC_KEY), backend=default_backend())
 
 
@@ -19,9 +19,11 @@ def generate_aes_key() -> bytes:
     ).encode()
 
 
-# aes加密用的ECB模式，padding用的pkcs
-# JavaScript源码中声明iv等于key，但是搞笑的是ECB模式并不需要iv，科技公司需要提高自己的密码学水平
 def aes_encrypt(message: bytes, key: bytes) -> bytes:
+    """
+    aes加密用的ECB模式，padding用的pkcs
+    需要注意的是app.js源码中声明iv等于key，但是ECB模式并不需要iv，就像这里modes.ECB()没有加入参数一样
+    """
     padder = padding.PKCS7(128).padder()
     padded_message = padder.update(message) + padder.finalize()
 

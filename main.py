@@ -1,5 +1,3 @@
-from pprint import pprint
-
 import format_tool
 from client import Client
 
