@@ -1,4 +1,7 @@
 # BuaaBykcCrawler
+
+**本科毕业后，本项目不再更新，https://github.com/Dr-Bluemond/BykcTelegramBot 项目随缘更新**
+
 北航博雅课程 Python + requests 爬虫接口。
 
 提供最基本的登录，查询，选课，退选接口。
